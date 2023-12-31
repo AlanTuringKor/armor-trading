@@ -18,132 +18,6 @@ from sklearn.metrics import r2_score
 
 
 
-# type = 1: only Price, type = 2: Price and Volume, type = 3: Price, Volume, Transaction data and Hash rate
-def get_data(type, start_date, end_date):
-    df = yf.download(f'BTC-USD', start=start_date, end=end_date)
-    
-    print("the most recent date of the data is:" + df.tail(1).index[0].strftime('%Y-%m-%d %H:%M:%S'))
-
-    # Printing the first few entries of the dataset
-    print("\n\nThe head of the dataframe of {}: \n\n".format("BTC"))
-    print(df.head())
-
-    print("\n\n Description of the dataset of {}: \n\n".format("BTC"))
-    print(df.describe())
-
-    # Pre-Processing
-
-    # Scaling the data using the Min Max Scaling between 0 and 1
-    scaler = MinMaxScaler(feature_range=(0, 1))
-    
-    #df = df[['Close', 'Volume']].values.reshape(-1, 2)
-    close = df[['Close']].values
-    volume = df[['Volume']].values
-    hashrate = np.array(_get_hashrate(start_date, end_date)).reshape(-1, 1)
-    txCount = np.array(_get_transaction_count(start_date, end_date)).reshape(-1, 1)
-    
-    # if the length of those 4 numpy array is not same than delete the latest Element of each list so the length of those list corresponds the length of the shortest list 
-    # Find the minimum length among all arrays
-    min_length = min(len(close), len(volume), len(hashrate), len(txCount))
-
-    # Truncate each array to the minimum length
-    close = close[:min_length]
-    volume = volume[:min_length]
-    hashrate = hashrate[:min_length]
-    txCount = txCount[:min_length]
-    
-    df = np.concatenate((close,volume,hashrate,txCount),axis=1)
-
-    df_scaled = scaler.fit_transform(df.reshape(-1, 4))
-    
-    x_data, y_data = [], []
-    # Looks back on 60 days of data to predict the values of 61st day
-    lookback = 60
-    # Filling up the x_data and y_data with the scaled data
-    for i in range(lookback, len(df_scaled)):
-
-        x_data.append(df_scaled[i - lookback: i, 0:4])
-
-        # The value of Closing price at i is the the required output/label
-        y_data.append(df_scaled[i, 0])
-
-
-    # Converting the data set we have created into a numpy array
-    x_data = np.array(x_data)
-    y_data = np.array(y_data)
-    
-    
-    print("\n\n The number of samples in our training data = " + str(len(x_data)) + "\n\n")
-    
-    return x_data, y_data
-
-def _create_and_fit_model_LSTM(layers, x_data, y_data):
-    model = Sequential()
-    for i in range(len(layers)):
-        if i == 0:
-            model.add(LSTM(units=layers[i], return_sequences=True, input_shape=(x_data.shape[1], x_data.shape[2])))
-            model.add(Dropout(0.2))
-        elif i == len(layers)-1:
-            model.add(LSTM(units=layers[i]))
-            model.add(Dropout(0.2))
-            model.add(Dense(units=y_data.shape[2]))
-        else:
-            model.add(LSTM(units=layers[i], return_sequences=True))
-            model.add(Dropout(0.2))
-    model.summary()
-
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    # is the use of callback alright? is this like an Observer class?
-    callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=2)
-    history = model.fit(x_data, y_data, epochs=25, batch_size=32)
-
-    return model, history
-
-
-def _create_and_fit_model_BILSTM(layers, x_data, y_data):
-    model = Sequential()
-    for i in range(len(layers)):
-        if i == 0:
-            model.add(Bidirectional(LSTM(units=layers[i], return_sequences=True), input_shape=(x_data.shape[1], x_data.shape[2])))
-            model.add(Dropout(0.2))
-        elif i == len(layers)-1:
-            model.add(Bidirectional(LSTM(units=layers[i])))
-            model.add(Dropout(0.2))
-            model.add(Dense(units=y_data.shape[2]))
-        else:
-            model.add(Bidirectional(LSTM(units=layers[i], return_sequences=True)))
-            model.add(Dropout(0.2))
-    model.summary()
-
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    # is the use of callback alright? is this like an Observer class?
-    callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=2)
-    history = model.fit(x_data, y_data, epochs=25, batch_size=32)
-
-    return model, history
-
-def _create_and_fit_model_GRU(layers, x_data, y_data):
-    model = Sequential()
-    for i in range(len(layers)):
-        if i == 0:
-            model.add(GRU(units=layers[i], return_sequences=True, input_shape=(x_data.shape[1], x_data.shape[2])))
-            model.add(Dropout(0.2))
-        elif i == len(layers)-1:
-            model.add(GRU(units=layers[i]))
-            model.add(Dropout(0.2))
-            model.add(Dense(units=y_data.shape[2]))
-        else:
-            model.add(GRU(units=layers[i], return_sequences=True))
-            model.add(Dropout(0.2))
-    model.summary()
-
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    # is the use of callback alright? is this like an Observer class?
-    callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=2)
-    history = model.fit(x_data, y_data, epochs=25, batch_size=32)
-
-    return model, history
-
 def _visualize_training_history(history):
     historyForPlot = pd.DataFrame(history.history)
     historyForPlot.index += 1 # we plus 1 to the number of indexing so our epochs Plot picture will be counting from 1 not 0.
@@ -151,31 +25,6 @@ def _visualize_training_history(history):
     plt.ylabel("loss")
     plt.xlabel("epochs")
 
-
-# this function also should be transfers to model class. only prediction and visualization are suiting for this script
-def create_and_fit_model(type, layers, train, target):
-    """
-    This is the public function for creating and fitting a Model.
-
-    Args:
-        type (str): The type of the desired Model.("LSTM", "GRU", "BILSTM")
-        layers (list of int): The List contains number of the Units which the Hidden Layers gonna have. Should have at least 2 Elements
-        train (array): Training data
-        target (array): Target data
-
-    Returns:
-        Model: the created and fitted model
-    """
-    if type == "LSTM":
-        return _create_and_fit_model_LSTM(layers, train, target)
-    elif type == "GRU":
-        return _create_and_fit_model_GRU(layers, train, target)
-    elif type == "BILSTM":
-        return _create_and_fit_model_BILSTM(layers, train, target)
-    else:
-        print("wrong input bro! only one of these (LSTM, GRU, BILSTM)")
-
-    raise NotImplementedError()
 
 def test_and_visualize_model(model, data, start_date, regression_steps):
     # Create time values for the x-axis
@@ -229,9 +78,7 @@ def test_and_visualize_model(model, data, start_date, regression_steps):
     ## variation 2-3: difference median, avarage, etc
     
     
-    raise NotImplementedError()
-
-
+    pass
 
 
 

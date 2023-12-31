@@ -13,17 +13,24 @@ class MyData:
         self.start_date = start_date
         self.end_date = end_date
         self.x_features = x_features
-        self.y_features = y_features
-        
-        self._fetch_data()
-        
-        
-        pass
+        self.y_features = y_features    
+        self._fetch_data() 
 
     def get_data(self):
-        
         return self.data
     
+    def get_x_scaler(self):
+        return self.x_scaler
+    
+    def get_y_scaler(self):
+        return self.y_scaler
+    
+    def get_x_data(self):
+        return self.x_data
+    
+    def get_y_data(self):
+        return self.y_data
+        
     def _get_hashrate(start_date, end_date):
         url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
         end_date = end_date + timedelta(days=1)
@@ -72,10 +79,6 @@ class MyData:
         print(df.describe())
 
         # Pre-Processing
-
-        # Scaling the data using the Min Max Scaling between 0 and 1
-        scaler = MinMaxScaler(feature_range=(0, 1))
-        
         close = df[['Close']].values
         volume = df[['Volume']].values
         hashrate = np.array(self._get_hashrate(self.start_date, self.end_date)).reshape(-1, 1)
@@ -107,7 +110,9 @@ class MyData:
         if Feature.TRANSACTIONCOUNT in self.x_features:
             x_df = np.vstack((x_df, txCount))
         
-        x_df_scaled = scaler.fit_transform(x_df.reshape(-1, len(self.x_features)))
+        # Scaling the data using the Min Max Scaling between 0 and 1
+        self.x_scaler = MinMaxScaler(feature_range=(0, 1))
+        x_df_scaled = self.x_scaler.fit_transform(x_df.reshape(-1, len(self.x_features)))
         x_data = []
         
           
@@ -128,7 +133,9 @@ class MyData:
         if Feature.TRANSACTIONCOUNT in self.y_features:
             y_df = np.vstack((y_df, txCount))
         
-        y_df_scaled = scaler.fit_transform(y_df.reshape(-1, len(self.y_features)))
+        # Scaling the data using the Min Max Scaling between 0 and 1
+        self.y_scaler = MinMaxScaler(feature_range=(0, 1))
+        y_df_scaled = self.y_scaler.fit_transform(y_df.reshape(-1, len(self.y_features)))
                 
         y_data = []
                
