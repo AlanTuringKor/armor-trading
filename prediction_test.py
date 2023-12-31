@@ -14,43 +14,8 @@ from tensorflow.keras.layers import Dense, Dropout, LSTM, GRU, Bidirectional
 from tensorflow.keras.models import Sequential
 from sklearn.metrics import r2_score
 
-# TODO: need saving mechanism
 
 
-def _get_hashrate(start_date, end_date):
-    url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
-    end_date = end_date + timedelta(days=1)
-    params = {
-    'assets': 'btc',
-    'page_size': 10000,
-    'metrics': 'HashRate',
-    'start_time': start_date.strftime("%Y-%m-%d"),
-    'end_time': end_date.strftime("%Y-%m-%d"),  # or a specific end date
-    }
-
-    response = requests.get(url, params=params)
-    data = response.json()['data']
-    data = [item['HashRate'] for item in data]
-
-    return data
-    
-def _get_transaction_count(start_date, end_date):
-    url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
-    end_date = end_date + timedelta(days=1)
-    params = {
-    'assets': 'btc',
-    'page_size': 10000,
-    'metrics': 'TxCnt',
-    'start_time': start_date.strftime("%Y-%m-%d"),
-    'end_time': end_date.strftime("%Y-%m-%d"),  # or a specific end date
-    }
-
-    response = requests.get(url, params=params)
-    data = response.json()['data']
-    data = [item['TxCnt'] for item in data]
-
-    return data
-        
 
 
 # type = 1: only Price, type = 2: Price and Volume, type = 3: Price, Volume, Transaction data and Hash rate
@@ -186,6 +151,8 @@ def _visualize_training_history(history):
     plt.ylabel("loss")
     plt.xlabel("epochs")
 
+
+# this function also should be transfers to model class. only prediction and visualization are suiting for this script
 def create_and_fit_model(type, layers, train, target):
     """
     This is the public function for creating and fitting a Model.

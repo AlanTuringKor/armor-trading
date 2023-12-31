@@ -6,5 +6,9 @@ class Feature(Enum):
     HASHRATE = auto()
     TRANSACTIONCOUNT = auto()
     
+class ModelType(Enum):
+    LSTM = auto()
+    BILSTM = auto()
+    GRU = auto()
     
     
