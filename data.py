@@ -16,7 +16,7 @@ class MyData:
         self.y_features = y_features    
         self._fetch_data() 
 
-    def get_data(self):
+    def get_original_data(self):
         return self.data
     
     def get_x_scaler(self):
@@ -30,8 +30,20 @@ class MyData:
     
     def get_y_data(self):
         return self.y_data
+    
+    def get_x_features(self):
+        return self.x_features
+
+    def get_y_features(self):
+        return self.y_features
+    
+    def get_start_date(self):
+        return self.start_date
+    
+    def get_end_date(self):
+        return self.end_date
         
-    def _get_hashrate(start_date, end_date):
+    def _get_hashrate(self, start_date, end_date):
         url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
         end_date = end_date + timedelta(days=1)
         params = {
@@ -48,7 +60,7 @@ class MyData:
 
         return data
         
-    def _get_transaction_count(start_date, end_date):
+    def _get_transaction_count(self, start_date, end_date):
         url = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
         end_date = end_date + timedelta(days=1)
         params = {
@@ -101,14 +113,15 @@ class MyData:
         
         x_df = np.empty((0, close.shape[1]))
         
-        if Feature.CLOSING in self.x_features:
-            x_df = np.vstack((x_df, close))
-        if Feature.VOLUME in self.x_features:
-            x_df = np.vstack((x_df, volume))
-        if Feature.HASHRATE in self.x_features:
-            x_df = np.vstack((x_df, hashrate))
-        if Feature.TRANSACTIONCOUNT in self.x_features:
-            x_df = np.vstack((x_df, txCount))
+        for x in self.x_features: 
+            if x is Feature.CLOSING:
+                x_df = np.vstack((x_df, close))
+            if x is Feature.VOLUME:
+                x_df = np.vstack((x_df, volume))
+            if x is Feature.HASHRATE:
+                x_df = np.vstack((x_df, hashrate))
+            if x is Feature.TRANSACTIONCOUNT:
+                x_df = np.vstack((x_df, txCount))
         
         # Scaling the data using the Min Max Scaling between 0 and 1
         self.x_scaler = MinMaxScaler(feature_range=(0, 1))
@@ -124,14 +137,15 @@ class MyData:
         # for y_data
         y_df = np.empty((0, close.shape[1]))
         
-        if Feature.CLOSING in self.y_features:
-            y_df = np.vstack((y_df, close))
-        if Feature.VOLUME in self.y_features:
-            y_df = np.vstack((y_df, volume))
-        if Feature.HASHRATE in self.y_features:
-            y_df = np.vstack((y_df, hashrate))
-        if Feature.TRANSACTIONCOUNT in self.y_features:
-            y_df = np.vstack((y_df, txCount))
+        for x in self.y_features: 
+            if x is Feature.CLOSING:
+                y_df = np.vstack((y_df, close))
+            if x is Feature.VOLUME:
+                y_df = np.vstack((y_df, volume))
+            if x is Feature.HASHRATE:
+                y_df = np.vstack((y_df, hashrate))
+            if x is Feature.TRANSACTIONCOUNT:
+                y_df = np.vstack((y_df, txCount))
         
         # Scaling the data using the Min Max Scaling between 0 and 1
         self.y_scaler = MinMaxScaler(feature_range=(0, 1))
