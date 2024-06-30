@@ -12,6 +12,7 @@ This project focuses on predicting and analyzing cryptocurrency prices and relat
 6. [Project Structure](#project-structure)
 7. [Contributing](#contributing)
 8. [License](#license)
+9. [Contributors](#contributors)
 
 ## Introduction
 
@@ -86,6 +87,11 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+
+## Contributors
+- Junha Kim (김준하)
+- Gyungwook Lim (임경욱)
 
 ---
 
