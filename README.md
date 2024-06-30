@@ -41,8 +41,8 @@ This project utilizes historical cryptocurrency data to predict future prices an
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/crypto-price-prediction.git
-   cd crypto-price-prediction
+   git clone https://github.com/AlanTuringKor/armor-trading.git
+   cd armor-trading
    ```
 
 2. Install the required packages:
@@ -66,7 +66,7 @@ This project utilizes historical cryptocurrency data to predict future prices an
 
 2. Run the main script:
    ```
-   python main.py
+   python prediction_test.py
    ```
 
 3. The script will train the model, make predictions, and display various visualizations and metrics.
