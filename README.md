@@ -1,6 +1,4 @@
-Certainly! Here's a README for your Python project:
-
-# Cryptocurrency Price Prediction and Analysis
+# Armor Trading
 
 This project focuses on predicting and analyzing cryptocurrency prices and related metrics using machine learning techniques, specifically LSTM (Long Short-Term Memory) neural networks.
 
